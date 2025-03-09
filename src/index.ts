@@ -13,6 +13,10 @@ async function init() {
 
     const PORT = 3000;
 
+    app.get("/", (req, res) => {
+      res.send("Server is running");
+    });
+
     app.use("/api", router);
 
     app.listen(PORT, () => {
