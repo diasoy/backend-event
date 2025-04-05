@@ -26,9 +26,19 @@ const doc = {
       },
     },
     schemas: {
-        LoginRequest: {
-            identifier: "diasoy",
-            password: "123456"
+      LoginRequest: {
+        identifier: "diasoy",
+        password: "123456",
+      },
+      RegisterRequest: {
+        fullName: "diasoy",
+        userName: "diasoy",
+        email: "diassnorrman@gmail.com",
+        password: "Diasoy123",
+        confirmPassword: "Diasoy123",
+      },
+      ActivationRequest: {
+        code: "123456",
       },
     },
   },
