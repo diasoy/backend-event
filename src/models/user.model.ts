@@ -1,18 +1,64 @@
 import mongoose from "mongoose";
 import { encrypt } from "../utils/encryption";
-import { renderMailHtml, sendMail } from "../utils/mail/mail";
-import { CLIENT_HOST } from "../utils/env";
-import { EMAIL_SMTP_USER } from "../utils/env";
 
-export interface User {
-  fullName: string;
-  userName: string;
-  email: string;
-  password: string;
-  role: string;
-  profilePicture: string;
+import { renderMailHtml, sendMail } from "../utils/mail/mail";
+import { CLIENT_HOST, EMAIL_SMTP_USER } from "../utils/env";
+import { ROLES } from "../utils/constant";
+import * as Yup from "yup";
+
+const validatePassword = Yup.string()
+  .required()
+  .min(6, "Password must be at least 6 characters")
+  .test(
+    "at-least-one-uppercase-letter",
+    "Contains at least one uppercase letter",
+    (value) => {
+      if (!value) return false;
+      const regex = /^(?=.*[A-Z])/;
+      return regex.test(value);
+    }
+  )
+  .test(
+    "at-least-one-number",
+    "Contains at least one uppercase letter",
+    (value) => {
+      if (!value) return false;
+      const regex = /^(?=.*\d)/;
+      return regex.test(value);
+    }
+  );
+const validateConfirmPassword = Yup.string()
+  .required()
+  .oneOf([Yup.ref("password"), ""], "Password not match");
+
+export const USER_MODEL_NAME = "User";
+
+export const userLoginDTO = Yup.object({
+  identifier: Yup.string().required(),
+  password: validatePassword,
+});
+
+export const userUpdatePasswordDTO = Yup.object({
+  oldPassword: validatePassword,
+  password: validatePassword,
+  confirmPassword: validateConfirmPassword,
+});
+
+export const userDTO = Yup.object({
+  fullName: Yup.string().required(),
+  userName: Yup.string().required(),
+  email: Yup.string().email().required(),
+  password: validatePassword,
+  confirmPassword: validateConfirmPassword,
+});
+
+export type TypeUser = Yup.InferType<typeof userDTO>;
+
+export interface User extends Omit<TypeUser, "confirmPassword"> {
   isActive: boolean;
   activationCode: string;
+  role: string;
+  profilePicture: string;
   createdAt?: string;
 }
 
@@ -40,8 +86,8 @@ const UserSchema = new Schema<User>(
     },
     role: {
       type: Schema.Types.String,
-      enum: ["admin", "user"],
-      default: "user",
+      enum: [ROLES.ADMIN, ROLES.MEMBER],
+      default: ROLES.MEMBER,
     },
     profilePicture: {
       type: Schema.Types.String,
@@ -53,10 +99,11 @@ const UserSchema = new Schema<User>(
     },
     activationCode: {
       type: Schema.Types.String,
-      required: false,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 UserSchema.pre("save", function (next) {
@@ -69,8 +116,7 @@ UserSchema.pre("save", function (next) {
 UserSchema.post("save", async function (doc, next) {
   try {
     const user = doc;
-    console.log("send email to: ", user.email);
-
+    console.log("Send Email to: ", user);
     const contentMail = await renderMailHtml("registration-success.ejs", {
       userName: user.userName,
       fullName: user.fullName,
@@ -78,15 +124,14 @@ UserSchema.post("save", async function (doc, next) {
       createdAt: user.createdAt,
       activationLink: `${CLIENT_HOST}/auth/activation?code=${user.activationCode}`,
     });
-
     await sendMail({
       from: EMAIL_SMTP_USER,
       to: user.email,
-      subject: "Activation Account",
+      subject: "Aktivasi Akun Anda",
       html: contentMail,
     });
   } catch (error) {
-    console.error("Error sending email: ", error);
+    console.log(error);
   } finally {
     next();
   }
@@ -95,9 +140,10 @@ UserSchema.post("save", async function (doc, next) {
 UserSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
+  delete user.activationCode;
   return user;
 };
 
-const UserModel = mongoose.model("User", UserSchema);
+const UserModel = mongoose.model(USER_MODEL_NAME, UserSchema);
 
 export default UserModel;

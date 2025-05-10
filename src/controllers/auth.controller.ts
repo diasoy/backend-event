@@ -1,62 +1,77 @@
 import { Request, Response } from "express";
 import * as Yup from "yup";
-import UserModel from "../models/user.model";
+
+import UserModel, {
+  userDTO,
+  userLoginDTO,
+  userUpdatePasswordDTO,
+} from "../models/user.model";
 import { encrypt } from "../utils/encryption";
 import { generateToken } from "../utils/jwt";
-import { IReqUser } from "../middlewares/auth.middleware";
-
-type TRegister = {
-  fullName: string;
-  userName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-};
-
-type TLogin = {
-  identifier: string;
-  password: string;
-};
-
-const registerValidateSchema = Yup.object({
-  fullName: Yup.string().required(),
-  userName: Yup.string().required(),
-  email: Yup.string().email().required(),
-  password: Yup.string()
-    .required()
-    .min(6, "Password must be at least 6 characters")
-    .test(
-      "at-least-one-uppercase-letter",
-      "Contains at least one uppercase letter",
-      (value) => {
-        if (!value) return false;
-        const regex = /^(?=.*[A-Z])/;
-        return regex.test(value);
-      }
-    )
-    .test("at-least-one-number", "Contains at least one number", (value) => {
-      if (!value) return false;
-      const regex = /^(?=.*\d)/;
-      return regex.test(value);
-    }),
-  confirmPassword: Yup.string()
-    .required()
-    .oneOf([Yup.ref("password"), ""], "Password not match"),
-});
+import { IReqUser } from "../utils/interfaces";
+import response from "../utils/response";
 
 export default {
-  async register(req: Request, res: Response) {
-    /**
-     #swagger.tags = ["Auth"]
-     */
+  async updateProfile(req: IReqUser, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { fullName, profilePicture } = req.body;
+      const result = await UserModel.findByIdAndUpdate(
+        userId,
+        {
+          fullName,
+          profilePicture,
+        },
+        {
+          new: true,
+        }
+      );
 
-    const { fullName, userName, email, password, confirmPassword } =
-      req.body as TRegister;
+      if (!result) return response.notFound(res, "user not found");
+
+      response.success(res, result, "success to update profile");
+    } catch (error) {
+      response.error(res, error, "failed to update profile");
+    }
+  },
+  async updatePassword(req: IReqUser, res: Response) {
+    try {
+      const userId = req.user?.id;
+      const { oldPassword, password, confirmPassword } = req.body;
+
+      await userUpdatePasswordDTO.validate({
+        oldPassword,
+        password,
+        confirmPassword,
+      });
+
+      const user = await UserModel.findById(userId);
+
+      if (!user || user.password !== encrypt(oldPassword))
+        return response.notFound(res, "user not found");
+
+      const result = await UserModel.findByIdAndUpdate(
+        userId,
+        {
+          password: encrypt(password),
+        },
+        {
+          new: true,
+        }
+      );
+      response.success(res, result, "success to update password");
+    } catch (error) {
+      response.error(res, error, "failed to update password");
+    }
+  },
+
+  async register(req: Request, res: Response) {
+    const { fullName, username, email, password, confirmPassword } = req.body;
 
     try {
-      await registerValidateSchema.validate({
+      await userDTO.validate({
         fullName,
-        userName,
+        username,
         email,
         password,
         confirmPassword,
@@ -64,53 +79,46 @@ export default {
 
       const result = await UserModel.create({
         fullName,
-        userName,
         email,
+        username,
         password,
       });
 
-      res.status(200).json({
-        message: "Success Register",
-        data: result,
-      });
+      response.success(res, result, "success registration!");
     } catch (error) {
-      const err = error as unknown as Error;
-      res.status(400).json({
-        message: err.message,
-        data: null,
-      });
+      response.error(res, error, "failed registration");
     }
   },
-
   async login(req: Request, res: Response) {
-    /**
-      #swagger.tags = ["Auth"]
-      #swagger.requestBody = {
-      required: true,
-      schema: { $ref: "#/components/schemas/LoginRequest" }}
-    */
-
-    const { identifier, password } = req.body as unknown as TLogin;
     try {
+      const { identifier, password } = req.body;
+      await userLoginDTO.validate({
+        identifier,
+        password,
+      });
+
       const userByIdentifier = await UserModel.findOne({
-        $or: [{ email: identifier }, { userName: identifier }],
+        $or: [
+          {
+            email: identifier,
+          },
+          {
+            username: identifier,
+          },
+        ],
         isActive: true,
       });
 
       if (!userByIdentifier) {
-        return res.status(403).json({
-          message: "User not found",
-          data: null,
-        });
+        return response.unauthorized(res, "user not found");
       }
 
+      // validasi password
       const validatePassword: boolean =
         encrypt(password) === userByIdentifier.password;
+
       if (!validatePassword) {
-        return res.status(403).json({
-          message: "User not found",
-          data: null,
-        });
+        return response.unauthorized(res, "user not found");
       }
 
       const token = generateToken({
@@ -118,54 +126,25 @@ export default {
         role: userByIdentifier.role,
       });
 
-      res.status(200).json({
-        message: "Success Login",
-        data: token,
-      });
+      response.success(res, token, "login success");
     } catch (error) {
-      const err = error as unknown as Error;
-      res.status(400).json({
-        message: err.message,
-        data: null,
-      });
+      response.error(res, error, "login failed");
     }
   },
-
   async me(req: IReqUser, res: Response) {
-    /**
-     *#swagger.tags = ["Auth"]
-     #swagger.security = [{
-          "bearerAuth": []
-      }]
-     */
-
     try {
       const user = req.user;
       const result = await UserModel.findById(user?.id);
 
-      res.status(200).json({
-        message: "Success Get User Profile",
-        data: result,
-      });
+      response.success(res, result, "success get user profile");
     } catch (error) {
-      const err = error as unknown as Error;
-      res.status(400).json({
-        message: err.message,
-        data: null,
-      });
+      response.error(res, error, "failed get user profile");
     }
   },
-
   async activation(req: Request, res: Response) {
-    /**
-     #swagger.tags = ["Auth"]
-      #swagger.requestBody = {
-        required: true,
-        schema: { $ref: "#/components/schemas/ActivationRequest" }}
-     */
-
     try {
       const { code } = req.body as { code: string };
+
       const user = await UserModel.findOneAndUpdate(
         {
           activationCode: code,
@@ -177,16 +156,10 @@ export default {
           new: true,
         }
       );
-      res.status(200).json({
-        message: "Success Activation",
-        data: user,
-      });
+
+      response.success(res, user, "user successfully activated");
     } catch (error) {
-      const err = error as unknown as Error;
-      res.status(400).json({
-        message: err.message,
-        data: null,
-      });
+      response.error(res, error, "user is failed activated");
     }
   },
 };
