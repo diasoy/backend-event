@@ -66,12 +66,12 @@ export default {
   },
 
   async register(req: Request, res: Response) {
-    const { fullName, username, email, password, confirmPassword } = req.body;
+    const { fullName, userName, email, password, confirmPassword } = req.body;
 
     try {
       await userDTO.validate({
         fullName,
-        username,
+        userName,
         email,
         password,
         confirmPassword,
@@ -80,7 +80,7 @@ export default {
       const result = await UserModel.create({
         fullName,
         email,
-        username,
+        userName,
         password,
       });
 
@@ -103,7 +103,7 @@ export default {
             email: identifier,
           },
           {
-            username: identifier,
+            userName: identifier,
           },
         ],
         isActive: true,
