@@ -52,6 +52,7 @@ npm start
 
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard:
+
    - `DATABASE_URL`
    - `SECRET`
    - `EMAIL_SMTP_*` variables
