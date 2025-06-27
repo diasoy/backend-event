@@ -603,4 +603,21 @@ router.delete(
   */
 );
 
+// Webhook endpoint for Midtrans payment notifications (no auth required)
+router.post(
+  "/payment/webhook",
+  orderController.webhook
+  /*
+  #swagger.tags = ['Payment']
+  #swagger.requestBody = {
+    required: true,
+    schema: {
+      order_id: "string",
+      transaction_status: "string", 
+      fraud_status: "string"
+    }
+  }
+  */
+);
+
 export default router;

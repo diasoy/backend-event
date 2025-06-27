@@ -1402,7 +1402,7 @@
             "type": "string",
             "example": "member2025"
           },
-          "username": {
+          "userName": {
             "type": "string",
             "example": "member2025"
           },

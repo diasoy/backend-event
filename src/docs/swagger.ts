@@ -30,7 +30,7 @@ const doc = {
       },
       RegisterRequest: {
         fullName: "member2025",
-        username: "member2025",
+        userName: "member2025",
         email: "member2025@yopmail.com",
         password: "Member2025!",
         confirmPassword: "Member2025!",

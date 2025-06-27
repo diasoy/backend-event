@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import { IReqUser } from "../utils/interfaces";
 import response from "../utils/response";
 import OrderModel, {
@@ -287,6 +287,100 @@ export default {
       response.success(res, result, "success to remove an order");
     } catch (error) {
       response.error(res, error, "failed to remove an order");
+    }
+  },
+
+  async webhook(req: Request, res: Response) {
+    try {
+      const { order_id, transaction_status, fraud_status } = req.body;
+
+      if (!order_id) {
+        return response.error(res, null, "Missing order_id in webhook");
+      }
+
+      let newStatus: OrderStatus;
+
+      // Map Midtrans transaction status to our order status
+      if (
+        transaction_status === "settlement" ||
+        transaction_status === "capture"
+      ) {
+        if (fraud_status === "challenge") {
+          newStatus = OrderStatus.PENDING;
+        } else {
+          newStatus = OrderStatus.COMPLETED;
+        }
+      } else if (transaction_status === "pending") {
+        newStatus = OrderStatus.PENDING;
+      } else if (
+        transaction_status === "deny" ||
+        transaction_status === "cancel" ||
+        transaction_status === "expire"
+      ) {
+        newStatus = OrderStatus.CANCELLED;
+      } else {
+        return response.error(
+          res,
+          null,
+          `Unknown transaction status: ${transaction_status}`
+        );
+      }
+
+      const order = await OrderModel.findOne({ orderId: order_id });
+
+      if (!order) {
+        return response.notFound(res, "Order not found");
+      }
+
+      // Update order status
+      if (
+        newStatus === OrderStatus.COMPLETED &&
+        order.status !== OrderStatus.COMPLETED
+      ) {
+        // Generate vouchers for completed orders
+        const vouchers: TypeVoucher[] = Array.from(
+          { length: order.quantity },
+          () => {
+            return {
+              isPrint: false,
+              voucherId: getId(),
+            } as TypeVoucher;
+          }
+        );
+
+        await OrderModel.findOneAndUpdate(
+          { orderId: order_id },
+          {
+            vouchers,
+            status: newStatus,
+          },
+          { new: true }
+        );
+
+        // Update ticket quantity
+        const ticket = await TicketModel.findById(order.ticket);
+        if (ticket) {
+          await TicketModel.updateOne(
+            { _id: ticket._id },
+            { quantity: ticket.quantity - order.quantity }
+          );
+        }
+      } else {
+        // Just update status for other cases
+        await OrderModel.findOneAndUpdate(
+          { orderId: order_id },
+          { status: newStatus },
+          { new: true }
+        );
+      }
+
+      response.success(
+        res,
+        { status: newStatus },
+        "Webhook processed successfully"
+      );
+    } catch (error) {
+      response.error(res, error, "Failed to process webhook");
     }
   },
 };

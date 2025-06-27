@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+export const PORT: number = Number(process.env.PORT) || 3000;
 export const DATABASE_URL: string = process.env.DATABASE_URL || "";
 export const SECRET: string = process.env.SECRET || "";
 export const EMAIL_SMTP_SECURE: boolean =
