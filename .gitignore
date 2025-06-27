@@ -1,3 +1,15 @@
 node_modules
 .env
+.env.local
+.env.development
+.env.production
 dist
+*.log
+.DS_Store
+.vscode/settings.json
+.vercel
+coverage/
+
+# TypeScript compiled files in src (should only be in dist)
+src/**/*.js
+src/**/*.js.map

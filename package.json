@@ -7,8 +7,10 @@
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
+    "clean": "rm -rf dist && find src -name '*.js' -delete && find src -name '*.js.map' -delete",
+    "clean:build": "npm run clean && npm run build",
     "docs": "ts-node src/docs/swagger.ts",
-    "vercel-build": "tsc"
+    "vercel-build": "npm run clean && tsc"
   },
   "keywords": [],
   "author": "",
@@ -35,7 +37,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
     "multer": "^1.4.5-lts.2",
-    "nanoid": "^5.1.5",
     "nodemailer": "^6.9.14",
     "nodemon": "3.1.4",
     "swagger-autogen": "^2.23.7",
@@ -46,6 +47,5 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
-    "@types/nanoid": "^2.1.0"
   }
 }
