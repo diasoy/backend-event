@@ -7,22 +7,24 @@ Project ini telah dikonfigurasi dan siap untuk deployment di Vercel dengan optim
 ### 🔧 **Konfigurasi Deployment**
 
 1. **Vercel Configuration** (`vercel.json`)
+
    - Minimal configuration (Vercel auto-detects API functions)
    - Entry point: `api/index.ts` (Vercel serverless function)
    - Exports handler from `src/index.ts`
 
 2. **API Structure**
+
    - `api/index.ts` - Vercel serverless function entry point
    - `src/index.ts` - Main Express application
    - Vercel automatically handles routing for `/api/*` endpoints
 
-2. **Package.json Optimization**
+3. **Package.json Optimization**
 
    - Dependencies dipisah dengan devDependencies
    - Build scripts optimized untuk Vercel
    - Clean scripts untuk maintenance
 
-3. **Handler Function**
+4. **Handler Function**
    - Serverless-compatible Express handler
    - CORS headers untuk cross-origin requests
    - Error handling yang robust
