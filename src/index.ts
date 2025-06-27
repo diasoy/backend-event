@@ -37,7 +37,7 @@ function createApp() {
       origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, etc)
         if (!origin) return callback(null, true);
-        
+
         const allowedOrigins = [
           "http://localhost:3001",
           "http://localhost:3000",
@@ -46,26 +46,26 @@ function createApp() {
           "https://frontend-event-tawny.vercel.app",
           process.env.CLIENT_HOST,
         ];
-        
+
         // Allow any vercel.app domain
-        if (origin.includes('vercel.app')) {
+        if (origin.includes("vercel.app")) {
           return callback(null, true);
         }
-        
+
         if (allowedOrigins.includes(origin)) {
           return callback(null, true);
         }
-        
-        callback(new Error('Not allowed by CORS'));
+
+        callback(new Error("Not allowed by CORS"));
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       allowedHeaders: [
-        "Content-Type", 
-        "Authorization", 
-        "X-Requested-With", 
-        "Accept", 
-        "Origin"
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
       ],
     })
   );
@@ -108,16 +108,19 @@ async function startServer() {
 export default async function handler(req: any, res: any) {
   try {
     // Set CORS headers
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader(
-      'Access-Control-Allow-Headers',
-      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+      "Access-Control-Allow-Methods",
+      "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
     );
 
     // Handle preflight requests
-    if (req.method === 'OPTIONS') {
+    if (req.method === "OPTIONS") {
       res.status(200).end();
       return;
     }

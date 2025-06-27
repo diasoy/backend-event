@@ -7,11 +7,17 @@ Project ini telah dikonfigurasi dan siap untuk deployment di Vercel dengan optim
 ### 🔧 **Konfigurasi Deployment**
 
 1. **Vercel Configuration** (`vercel.json`)
-   - Simplified configuration untuk serverless functions
-   - Maximum duration 30 detik
-   - Entry point: `src/index.ts`
+   - Minimal configuration (Vercel auto-detects API functions)
+   - Entry point: `api/index.ts` (Vercel serverless function)
+   - Exports handler from `src/index.ts`
+
+2. **API Structure**
+   - `api/index.ts` - Vercel serverless function entry point
+   - `src/index.ts` - Main Express application
+   - Vercel automatically handles routing for `/api/*` endpoints
 
 2. **Package.json Optimization**
+
    - Dependencies dipisah dengan devDependencies
    - Build scripts optimized untuk Vercel
    - Clean scripts untuk maintenance
@@ -58,19 +64,21 @@ MIDTRANS_TRANSACTION_URL=https://api.sandbox.midtrans.com/v2
 ### 🚀 **Deployment Steps**
 
 1. **Connect to Vercel**
+
    ```bash
    # Install Vercel CLI (optional)
    npm i -g vercel
-   
+
    # Login to Vercel
    vercel login
    ```
 
 2. **Deploy**
+
    ```bash
    # Deploy to preview
    vercel
-   
+
    # Deploy to production
    vercel --prod
    ```
@@ -84,11 +92,13 @@ MIDTRANS_TRANSACTION_URL=https://api.sandbox.midtrans.com/v2
 ### 🔍 **Testing Deployment**
 
 1. **Local Build Test**
+
    ```bash
    npm run clean:build
    ```
 
 2. **Local Dev Test**
+
    ```bash
    npm run dev
    ```
@@ -104,15 +114,18 @@ MIDTRANS_TRANSACTION_URL=https://api.sandbox.midtrans.com/v2
 #### Common Issues:
 
 1. **Database Connection Error**
+
    - Verify `DATABASE_URL` is set correctly
    - Ensure MongoDB Atlas allows connections from `0.0.0.0/0`
    - Check database name in connection string
 
 2. **CORS Issues**
+
    - Add your frontend domain to CORS configuration
    - Update `CLIENT_HOST` environment variable
 
 3. **Function Timeout**
+
    - Check function duration in Vercel logs
    - Optimize database queries
    - Consider adding connection pooling
