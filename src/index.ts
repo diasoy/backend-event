@@ -34,18 +34,39 @@ function createApp() {
   // CORS configuration with production URLs
   app.use(
     cors({
-      origin: [
-        "http://localhost:3001",
-        "http://localhost:3000",
-        "https://frontend-event.vercel.app",
-        "https://fe-acara.vercel.app",
-        "https://frontend-event-tawny.vercel.app/",
-        /^https:\/\/.*\.vercel\.app$/,
-        process.env.CLIENT_HOST || "http://localhost:3001",
-      ],
+      origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, etc)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+          "http://localhost:3001",
+          "http://localhost:3000",
+          "https://frontend-event.vercel.app",
+          "https://fe-acara.vercel.app",
+          "https://frontend-event-tawny.vercel.app",
+          process.env.CLIENT_HOST,
+        ];
+        
+        // Allow any vercel.app domain
+        if (origin.includes('vercel.app')) {
+          return callback(null, true);
+        }
+        
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        callback(new Error('Not allowed by CORS'));
+      },
       credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      allowedHeaders: [
+        "Content-Type", 
+        "Authorization", 
+        "X-Requested-With", 
+        "Accept", 
+        "Origin"
+      ],
     })
   );
 
@@ -86,17 +107,32 @@ async function startServer() {
 // Export for Vercel serverless deployment
 export default async function handler(req: any, res: any) {
   try {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+    );
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
+
     // Ensure database connection
     await connectToDatabase();
 
-    // Create new app instance for each request (serverless best practice)
+    // Create app instance
     const app = createApp();
 
-    // Handle the request
-    return app(req, res);
+    // Handle the request using app as middleware
+    app(req, res);
   } catch (error) {
     console.error("Handler error:", error);
-    return res.status(500).json({
+    res.status(500).json({
       error: "Internal server error",
       message: error instanceof Error ? error.message : "Unknown error",
     });

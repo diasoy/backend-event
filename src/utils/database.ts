@@ -9,6 +9,11 @@ if (!cached) {
 }
 
 const connect = async () => {
+  // Validate DATABASE_URL
+  if (!DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -20,9 +25,11 @@ const connect = async () => {
       maxPoolSize: 10, // Maintain up to 10 socket connections
       serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      retryWrites: true,
     };
 
     cached.promise = mongoose.connect(DATABASE_URL, opts).then((mongoose) => {
+      console.log("MongoDB connected successfully");
       return mongoose;
     });
   }
