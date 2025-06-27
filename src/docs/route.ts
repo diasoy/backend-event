@@ -10,8 +10,9 @@ export default function docs(app: Express) {
       __dirname,
       "../../node_modules/swagger-ui-dist/swagger-ui.css"
     ),
-    "utf8"
+    "utf-8"
   );
+
   app.use(
     "/api-docs",
     swaggerUi.serve,

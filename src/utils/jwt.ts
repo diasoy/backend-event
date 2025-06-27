@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+import { User } from "../models/user.model";
 import jwt from "jsonwebtoken";
 import { SECRET } from "./env";
 import { IUserToken } from "./interfaces";

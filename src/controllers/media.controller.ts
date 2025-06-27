@@ -1,7 +1,7 @@
 import { Response } from "express";
+import { IReqUser } from "../utils/interfaces";
 import uploader from "../utils/uploader";
 import response from "../utils/response";
-import { IReqUser } from "../utils/interfaces";
 
 export default {
   async single(req: IReqUser, res: Response) {

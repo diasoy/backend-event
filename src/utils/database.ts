@@ -6,7 +6,7 @@ const connect = async () => {
     await mongoose.connect(DATABASE_URL, {
       dbName: "db-acara",
     });
-    return Promise.resolve("Connected to database");
+    return Promise.resolve("Database connected!");
   } catch (error) {
     return Promise.reject(error);
   }

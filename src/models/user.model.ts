@@ -46,7 +46,7 @@ export const userUpdatePasswordDTO = Yup.object({
 
 export const userDTO = Yup.object({
   fullName: Yup.string().required(),
-  userName: Yup.string().required(),
+  username: Yup.string().required(),
   email: Yup.string().email().required(),
   password: validatePassword,
   confirmPassword: validateConfirmPassword,
@@ -70,7 +70,7 @@ const UserSchema = new Schema<User>(
       type: Schema.Types.String,
       required: true,
     },
-    userName: {
+    username: {
       type: Schema.Types.String,
       required: true,
       unique: true,
@@ -118,7 +118,7 @@ UserSchema.post("save", async function (doc, next) {
     const user = doc;
     console.log("Send Email to: ", user);
     const contentMail = await renderMailHtml("registration-success.ejs", {
-      userName: user.userName,
+      username: user.username,
       fullName: user.fullName,
       email: user.email,
       createdAt: user.createdAt,

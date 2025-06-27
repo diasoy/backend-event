@@ -1,4 +1,7 @@
 import nodemailer from "nodemailer";
+import ejs from "ejs";
+import path from "path";
+
 import {
   EMAIL_SMTP_SERVICE_NAME,
   EMAIL_SMTP_HOST,
@@ -7,11 +10,9 @@ import {
   EMAIL_SMTP_SECURE,
   EMAIL_SMTP_USER,
 } from "../env";
-import ejs from "ejs";
-import path from "path";
 
 const transporter = nodemailer.createTransport({
-  service: EMAIL_SMTP_SERVICE_NAME,
+  // service: EMAIL_SMTP_SERVICE_NAME,
   host: EMAIL_SMTP_HOST,
   port: EMAIL_SMTP_PORT,
   secure: EMAIL_SMTP_SECURE,
@@ -22,7 +23,7 @@ const transporter = nodemailer.createTransport({
   requireTLS: true,
 });
 
-interface ISendMail {
+export interface ISendMail {
   from: string;
   to: string;
   subject: string;

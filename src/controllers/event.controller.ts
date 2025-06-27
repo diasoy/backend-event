@@ -15,8 +15,7 @@ export default {
     } catch (error) {
       response.error(res, error, "failed to create an event");
     }
-    },
-    
+  },
   async findAll(req: IReqUser, res: Response) {
     try {
       const buildQuery = (filter: any) => {
@@ -70,8 +69,7 @@ export default {
     } catch (error) {
       response.error(res, error, "failed find all events");
     }
-    },
-  
+  },
   async findOne(req: IReqUser, res: Response) {
     try {
       const { id } = req.params;
@@ -104,8 +102,7 @@ export default {
     } catch (error) {
       response.error(res, error, "failed update an event");
     }
-    },
-  
+  },
   async remove(req: IReqUser, res: Response) {
     try {
       const { id } = req.params;
@@ -121,8 +118,7 @@ export default {
     } catch (error) {
       response.error(res, error, "failed to remove an event");
     }
-    },
-  
+  },
   async findOneBySlug(req: IReqUser, res: Response) {
     try {
       const { slug } = req.params;
