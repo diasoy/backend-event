@@ -46,6 +46,34 @@ npm run build
 npm start
 ```
 
+## Deployment
+
+### Vercel Deployment
+
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard:
+   - `DATABASE_URL`
+   - `SECRET`
+   - `EMAIL_SMTP_*` variables
+   - `CLIENT_HOST` (your frontend URL)
+   - `MIDTRANS_*` variables
+   - `CLOUDINARY_*` variables
+   - `NODE_ENV=production`
+
+3. Deploy automatically when pushing to main branch
+
+### Environment Variables for Production
+
+Make sure to set these in your Vercel dashboard:
+
+- `DATABASE_URL`: MongoDB connection string
+- `SECRET`: JWT secret key
+- `CLIENT_HOST`: Your frontend domain (e.g., https://your-app.vercel.app)
+- `EMAIL_SMTP_*`: Email configuration
+- `MIDTRANS_*`: Payment gateway configuration
+- `CLOUDINARY_*`: File upload configuration
+- `NODE_ENV`: Set to "production"
+
 ### Generate API Documentation
 
 ```bash
